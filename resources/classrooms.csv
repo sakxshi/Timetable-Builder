@@ -1,0 +1,5 @@
+id,capacity,av_support,computers,roomType
+101,50,TRUE,0,Lecture
+102,30,TRUE,10,Lab
+103,80,FALSE,0,Lecture
+104,40,TRUE,15,Lab

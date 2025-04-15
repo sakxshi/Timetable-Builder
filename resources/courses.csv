@@ -1,0 +1,5 @@
+code,subject,domain,students,lecture_hours,lab_hours,lecture_instructor,lab_instructor
+CSF213,Data Structures,Computer Science,60,3,2,1,2
+CSF214,Algorithms,Computer Science,50,3,0,3,0
+MTH101,Calculus,Mathematics,80,4,0,4,0
+ELE101,Circuits,Electrical,40,3,1,5,2

@@ -1,0 +1,7 @@
+instructor_id,course_code,type
+1,CSF213,Lecture
+2,CSF213,Lab
+3,CSF214,Lecture
+4,MTH101,Lecture
+5,ELE101,Lecture
+2,ELE101,Lab
