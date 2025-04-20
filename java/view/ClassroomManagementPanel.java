@@ -3,138 +3,184 @@ package view;
 import model.Classroom;
 import service.TimetableService;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.border.*;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+import static view.UIConstants.*;
+import util.IconFactory;
 
 public class ClassroomManagementPanel extends JPanel {
     private TimetableService service;
-    
     private JTextField idField, roomNameField, capacityField, computersField;
     private JComboBox<String> avEquipmentCombo, roomTypeCombo;
     private JTable classroomTable;
     private DefaultTableModel tableModel;
     private JButton addButton, updateButton, deleteButton, clearButton;
-    
+
     public ClassroomManagementPanel() {
         service = new TimetableService();
         initializeUI();
         loadClassroomData();
     }
-    
+
     private void initializeUI() {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        // Header
+        setBackground(SECTION_BG_COLOR);
+
         JLabel headerLabel = new JLabel("Classroom Management");
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        
-        // Form Panel
+        headerLabel.setFont(HEADING_FONT);
+
         JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(WHITE_COLOR);
         formPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder("Add/Edit Classroom"),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                "Add New Classroom",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                SUBHEADING_FONT
+            ),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
-        
-        // Grid constraints
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
-        
-        // ID field
+        gbc.weightx = 1.0;
+
+        JPanel fieldsPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        fieldsPanel.setOpaque(false);
+
+        JPanel idFieldPanel = new JPanel(new BorderLayout());
+        idFieldPanel.setOpaque(false);
+        JLabel idLabel = new JLabel("ID");
+        idLabel.setFont(SMALL_FONT);
+        idField = new JTextField(10);
+        styleTextField(idField);
+        idFieldPanel.add(idLabel, BorderLayout.NORTH);
+        idFieldPanel.add(idField, BorderLayout.CENTER);
+
+        JPanel roomNameFieldPanel = new JPanel(new BorderLayout());
+        roomNameFieldPanel.setOpaque(false);
+        JLabel roomNameLabel = new JLabel("Room Name");
+        roomNameLabel.setFont(SMALL_FONT);
+        roomNameField = new JTextField(10);
+        styleTextField(roomNameField);
+        roomNameFieldPanel.add(roomNameLabel, BorderLayout.NORTH);
+        roomNameFieldPanel.add(roomNameField, BorderLayout.CENTER);
+
+        JPanel capacityFieldPanel = new JPanel(new BorderLayout());
+        capacityFieldPanel.setOpaque(false);
+        JLabel capacityLabel = new JLabel("Capacity");
+        capacityLabel.setFont(SMALL_FONT);
+        capacityField = new JTextField(10);
+        styleTextField(capacityField);
+        capacityFieldPanel.add(capacityLabel, BorderLayout.NORTH);
+        capacityFieldPanel.add(capacityField, BorderLayout.CENTER);
+
+        JPanel avEquipmentPanel = new JPanel(new BorderLayout());
+        avEquipmentPanel.setOpaque(false);
+        JLabel avEquipmentLabel = new JLabel("AV Equipment");
+        avEquipmentLabel.setFont(SMALL_FONT);
+        avEquipmentCombo = new JComboBox<>(new String[]{"Yes", "No"});
+        avEquipmentCombo.setFont(NORMAL_FONT);
+        avEquipmentPanel.add(avEquipmentLabel, BorderLayout.NORTH);
+        avEquipmentPanel.add(avEquipmentCombo, BorderLayout.CENTER);
+
+        JPanel computersFieldPanel = new JPanel(new BorderLayout());
+        computersFieldPanel.setOpaque(false);
+        JLabel computersLabel = new JLabel("Number of Computers");
+        computersLabel.setFont(SMALL_FONT);
+        computersField = new JTextField(10);
+        styleTextField(computersField);
+        computersFieldPanel.add(computersLabel, BorderLayout.NORTH);
+        computersFieldPanel.add(computersField, BorderLayout.CENTER);
+
+        JPanel roomTypePanel = new JPanel(new BorderLayout());
+        roomTypePanel.setOpaque(false);
+        JLabel roomTypeLabel = new JLabel("Room Type");
+        roomTypeLabel.setFont(SMALL_FONT);
+        roomTypeCombo = new JComboBox<>(new String[]{"Lecture", "Lab"});
+        roomTypeCombo.setFont(NORMAL_FONT);
+        roomTypePanel.add(roomTypeLabel, BorderLayout.NORTH);
+        roomTypePanel.add(roomTypeCombo, BorderLayout.CENTER);
+
+        fieldsPanel.add(idFieldPanel);
+        fieldsPanel.add(roomNameFieldPanel);
+        fieldsPanel.add(capacityFieldPanel);
+        fieldsPanel.add(avEquipmentPanel);
+        fieldsPanel.add(computersFieldPanel);
+        fieldsPanel.add(roomTypePanel);
+
         gbc.gridx = 0;
         gbc.gridy = 0;
-        formPanel.add(new JLabel("ID:"), gbc);
+        gbc.gridwidth = 2;
+        formPanel.add(fieldsPanel, gbc);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setOpaque(false);
         
-        gbc.gridx = 1;
-        idField = new JTextField(10);
-        formPanel.add(idField, gbc);
-        
-        // Room Name field
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        formPanel.add(new JLabel("Room Name:"), gbc);
-        
-        gbc.gridx = 1;
-        roomNameField = new JTextField(10);
-        formPanel.add(roomNameField, gbc);
-        
-        // Capacity field
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        formPanel.add(new JLabel("Capacity:"), gbc);
-        
-        gbc.gridx = 1;
-        capacityField = new JTextField(10);
-        formPanel.add(capacityField, gbc);
-        
-        // A/V Equipment combo
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        formPanel.add(new JLabel("A/V Equipment:"), gbc);
-        
-        gbc.gridx = 1;
-        avEquipmentCombo = new JComboBox<>(new String[]{"Yes", "No"});
-        formPanel.add(avEquipmentCombo, gbc);
-        
-        // Computers field
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        formPanel.add(new JLabel("Computers:"), gbc);
-        
-        gbc.gridx = 1;
-        computersField = new JTextField(10);
-        formPanel.add(computersField, gbc);
-        
-        // Room Type combo
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        formPanel.add(new JLabel("Room Type:"), gbc);
-        
-        gbc.gridx = 1;
-        roomTypeCombo = new JComboBox<>(new String[]{"Lecture", "Lab"});
-        formPanel.add(roomTypeCombo, gbc);
-        
-        // Buttons panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        
-        addButton = new JButton("Add");
-        updateButton = new JButton("Update");
-        deleteButton = new JButton("Delete");
-        clearButton = new JButton("Clear");
-        
+        addButton = createStyledButton("Add Classroom", PRIMARY_COLOR);
+addButton.setIcon(IconFactory.createPlusIcon());
+        addButton.setIcon(IconFactory.createPlusIcon());
+        updateButton = createStyledButton("Update", SECONDARY_COLOR);
+        deleteButton = createStyledButton("Delete", new Color(192, 57, 43));
+        clearButton = createStyledButton("Clear", new Color(108, 117, 125));
+
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(clearButton);
-        
+
         gbc.gridx = 0;
-        gbc.gridy = 6;
+        gbc.gridy = 1;
         gbc.gridwidth = 2;
         formPanel.add(buttonPanel, gbc);
-        
-        // Table
-        String[] columnNames = {"ID", "Room Name", "Capacity", "A/V Equipment", "Computers", "Room Type"};
+
+        String[] columnNames = {"ID", "Room Name", "Capacity", "AV Equipment", "Computers", "Room Type"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
+
         classroomTable = new JTable(tableModel);
+        classroomTable.setFont(NORMAL_FONT);
+        classroomTable.setRowHeight(40);
+        classroomTable.setShowGrid(true);
+        classroomTable.setGridColor(new Color(230, 230, 230));
+
+        JTableHeader header = classroomTable.getTableHeader();
+        header.setFont(SMALL_FONT);
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(HEADING_COLOR);
+
         JScrollPane scrollPane = new JScrollPane(classroomTable);
-        
-        // Add components to main panel
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+
+        JPanel mainContentPanel = new JPanel(new BorderLayout(0, 20));
+        mainContentPanel.setOpaque(false);
+
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(WHITE_COLOR);
+        tablePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+
+        mainContentPanel.add(formPanel, BorderLayout.NORTH);
+        mainContentPanel.add(tablePanel, BorderLayout.CENTER);
+
         add(headerLabel, BorderLayout.NORTH);
-        add(formPanel, BorderLayout.WEST);
-        add(scrollPane, BorderLayout.CENTER);
-        
-        // Add action listeners to buttons
+        add(mainContentPanel, BorderLayout.CENTER);
+
         setupActionListeners();
     }
-    
+
     private void setupActionListeners() {
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -142,40 +188,37 @@ public class ClassroomManagementPanel extends JPanel {
                 addClassroom();
             }
         });
-        
+
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 updateClassroom();
             }
         });
-        
+
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 deleteClassroom();
             }
         });
-        
+
         clearButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 clearForm();
             }
         });
-        
+
         classroomTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && classroomTable.getSelectedRow() != -1) {
                 populateForm();
             }
         });
     }
-    
+
     private void loadClassroomData() {
-        // Clear existing data
         tableModel.setRowCount(0);
-        
-        // Load from service
         for (Classroom classroom : service.getAllClassrooms()) {
             Object[] row = {
                 classroom.getId(),
@@ -188,7 +231,7 @@ public class ClassroomManagementPanel extends JPanel {
             tableModel.addRow(row);
         }
     }
-    
+
     private void populateForm() {
         int selectedRow = classroomTable.getSelectedRow();
         if (selectedRow != -1) {
@@ -200,7 +243,7 @@ public class ClassroomManagementPanel extends JPanel {
             roomTypeCombo.setSelectedItem(tableModel.getValueAt(selectedRow, 5));
         }
     }
-    
+
     private void clearForm() {
         idField.setText("");
         roomNameField.setText("");
@@ -210,7 +253,7 @@ public class ClassroomManagementPanel extends JPanel {
         roomTypeCombo.setSelectedIndex(0);
         classroomTable.clearSelection();
     }
-    
+
     private void addClassroom() {
         try {
             int id = Integer.parseInt(idField.getText());
@@ -218,7 +261,7 @@ public class ClassroomManagementPanel extends JPanel {
             boolean avEquipment = avEquipmentCombo.getSelectedItem().equals("Yes");
             int computers = Integer.parseInt(computersField.getText());
             String roomType = (String) roomTypeCombo.getSelectedItem();
-            
+
             Classroom classroom = new Classroom(id, capacity, avEquipment, computers, roomType);
             service.addClassroom(classroom);
             loadClassroomData();
@@ -228,21 +271,21 @@ public class ClassroomManagementPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers for ID, Capacity, and Computers", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     private void updateClassroom() {
         int selectedRow = classroomTable.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Please select a classroom to update", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         try {
             int id = Integer.parseInt(idField.getText());
             int capacity = Integer.parseInt(capacityField.getText());
             boolean avEquipment = avEquipmentCombo.getSelectedItem().equals("Yes");
             int computers = Integer.parseInt(computersField.getText());
             String roomType = (String) roomTypeCombo.getSelectedItem();
-            
+
             Classroom classroom = new Classroom(id, capacity, avEquipment, computers, roomType);
             service.updateClassroom(classroom);
             loadClassroomData();
@@ -252,14 +295,14 @@ public class ClassroomManagementPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers for ID, Capacity, and Computers", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     private void deleteClassroom() {
         int selectedRow = classroomTable.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Please select a classroom to delete", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this classroom?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             int id = Integer.parseInt(tableModel.getValueAt(selectedRow, 0).toString());

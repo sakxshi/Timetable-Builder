@@ -3,101 +3,121 @@ package view;
 import model.Instructor;
 import service.TimetableService;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.border.*;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+import static view.UIConstants.*;
+import util.IconFactory;
 
 public class InstructorManagementPanel extends JPanel {
     private TimetableService service;
-    
     private JTextField idField, firstNameField, lastNameField;
     private JComboBox<String> departmentCombo;
     private JTable instructorTable;
     private DefaultTableModel tableModel;
     private JButton addButton, updateButton, deleteButton, clearButton;
-    
+
     public InstructorManagementPanel() {
         service = new TimetableService();
         initializeUI();
         loadInstructorData();
     }
-    
+
     private void initializeUI() {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        // Header
+        setBackground(SECTION_BG_COLOR);
+
         JLabel headerLabel = new JLabel("Instructor Management");
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        
-        // Form Panel
+        headerLabel.setFont(HEADING_FONT);
+
         JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(WHITE_COLOR);
         formPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder("Add/Edit Instructor"),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                "Add New Instructor",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                SUBHEADING_FONT
+            ),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
-        
-        // Grid constraints
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
-        
-        // ID field
+        gbc.weightx = 1.0;
+
+        JPanel fieldsPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        fieldsPanel.setOpaque(false);
+
+        JPanel idFieldPanel = new JPanel(new BorderLayout());
+        idFieldPanel.setOpaque(false);
+        JLabel idLabel = new JLabel("ID");
+        idLabel.setFont(SMALL_FONT);
+        idField = new JTextField(10);
+        styleTextField(idField);
+        idFieldPanel.add(idLabel, BorderLayout.NORTH);
+        idFieldPanel.add(idField, BorderLayout.CENTER);
+
+        JPanel firstNameFieldPanel = new JPanel(new BorderLayout());
+        firstNameFieldPanel.setOpaque(false);
+        JLabel firstNameLabel = new JLabel("First Name");
+        firstNameLabel.setFont(SMALL_FONT);
+        firstNameField = new JTextField(10);
+        styleTextField(firstNameField);
+        firstNameFieldPanel.add(firstNameLabel, BorderLayout.NORTH);
+        firstNameFieldPanel.add(firstNameField, BorderLayout.CENTER);
+
+        JPanel lastNameFieldPanel = new JPanel(new BorderLayout());
+        lastNameFieldPanel.setOpaque(false);
+        JLabel lastNameLabel = new JLabel("Last Name");
+        lastNameLabel.setFont(SMALL_FONT);
+        lastNameField = new JTextField(10);
+        styleTextField(lastNameField);
+        lastNameFieldPanel.add(lastNameLabel, BorderLayout.NORTH);
+        lastNameFieldPanel.add(lastNameField, BorderLayout.CENTER);
+
+        JPanel departmentPanel = new JPanel(new BorderLayout());
+        departmentPanel.setOpaque(false);
+        JLabel departmentLabel = new JLabel("Department");
+        departmentLabel.setFont(SMALL_FONT);
+        departmentCombo = new JComboBox<>(new String[]{"CSE", "Mathematics", "Electrical", "Mechanical", "Physics", "Chemistry"});
+        departmentCombo.setFont(NORMAL_FONT);
+        departmentPanel.add(departmentLabel, BorderLayout.NORTH);
+        departmentPanel.add(departmentCombo, BorderLayout.CENTER);
+
+        fieldsPanel.add(idFieldPanel);
+        fieldsPanel.add(firstNameFieldPanel);
+        fieldsPanel.add(lastNameFieldPanel);
+        fieldsPanel.add(departmentPanel);
+
         gbc.gridx = 0;
         gbc.gridy = 0;
-        formPanel.add(new JLabel("ID:"), gbc);
+        gbc.gridwidth = 2;
+        formPanel.add(fieldsPanel, gbc);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setOpaque(false);
         
-        gbc.gridx = 1;
-        idField = new JTextField(10);
-        formPanel.add(idField, gbc);
-        
-        // First Name field
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        formPanel.add(new JLabel("First Name:"), gbc);
-        
-        gbc.gridx = 1;
-        firstNameField = new JTextField(10);
-        formPanel.add(firstNameField, gbc);
-        
-        // Last Name field
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        formPanel.add(new JLabel("Last Name:"), gbc);
-        
-        gbc.gridx = 1;
-        lastNameField = new JTextField(10);
-        formPanel.add(lastNameField, gbc);
-        
-        // Department combo
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        formPanel.add(new JLabel("Department:"), gbc);
-        
-        gbc.gridx = 1;
-        departmentCombo = new JComboBox<>(new String[]{"CSE", "Mathematics", "Electrical", "Mechanical", "Physics", "Chemistry"});
-        formPanel.add(departmentCombo, gbc);
-        
-        // Buttons panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        
-        addButton = new JButton("Add");
-        updateButton = new JButton("Update");
-        deleteButton = new JButton("Delete");
-        clearButton = new JButton("Clear");
-        
+        addButton = createStyledButton("Add Instructor", PRIMARY_COLOR);
+addButton.setIcon(IconFactory.createPlusIcon());
+        updateButton = createStyledButton("Update", SECONDARY_COLOR);
+        deleteButton = createStyledButton("Delete", new Color(192, 57, 43));
+        clearButton = createStyledButton("Clear", new Color(108, 117, 125));
+
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(clearButton);
-        
+
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 1;
         gbc.gridwidth = 2;
         formPanel.add(buttonPanel, gbc);
-        
-        // Table
+
         String[] columnNames = {"ID", "First Name", "Last Name", "Department"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -105,18 +125,41 @@ public class InstructorManagementPanel extends JPanel {
                 return false;
             }
         };
+
         instructorTable = new JTable(tableModel);
+        instructorTable.setFont(NORMAL_FONT);
+        instructorTable.setRowHeight(40);
+        instructorTable.setShowGrid(true);
+        instructorTable.setGridColor(new Color(230, 230, 230));
+
+        JTableHeader header = instructorTable.getTableHeader();
+        header.setFont(SMALL_FONT);
+        header.setBackground(new Color(240, 240, 240));
+        header.setForeground(HEADING_COLOR);
+
         JScrollPane scrollPane = new JScrollPane(instructorTable);
-        
-        // Add components to main panel
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+
+        JPanel mainContentPanel = new JPanel(new BorderLayout(0, 20));
+        mainContentPanel.setOpaque(false);
+
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(WHITE_COLOR);
+        tablePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+
+        mainContentPanel.add(formPanel, BorderLayout.NORTH);
+        mainContentPanel.add(tablePanel, BorderLayout.CENTER);
+
         add(headerLabel, BorderLayout.NORTH);
-        add(formPanel, BorderLayout.WEST);
-        add(scrollPane, BorderLayout.CENTER);
-        
-        // Add action listeners to buttons
+        add(mainContentPanel, BorderLayout.CENTER);
+
         setupActionListeners();
     }
-    
+
     private void setupActionListeners() {
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -124,40 +167,37 @@ public class InstructorManagementPanel extends JPanel {
                 addInstructor();
             }
         });
-        
+
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 updateInstructor();
             }
         });
-        
+
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 deleteInstructor();
             }
         });
-        
+
         clearButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 clearForm();
             }
         });
-        
+
         instructorTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && instructorTable.getSelectedRow() != -1) {
                 populateForm();
             }
         });
     }
-    
+
     private void loadInstructorData() {
-        // Clear existing data
         tableModel.setRowCount(0);
-        
-        // Load from service
         for (Instructor instructor : service.getAllInstructors()) {
             Object[] row = {
                 instructor.getId(),
@@ -168,7 +208,7 @@ public class InstructorManagementPanel extends JPanel {
             tableModel.addRow(row);
         }
     }
-    
+
     private void populateForm() {
         int selectedRow = instructorTable.getSelectedRow();
         if (selectedRow != -1) {
@@ -178,7 +218,7 @@ public class InstructorManagementPanel extends JPanel {
             departmentCombo.setSelectedItem(tableModel.getValueAt(selectedRow, 3));
         }
     }
-    
+
     private void clearForm() {
         idField.setText("");
         firstNameField.setText("");
@@ -186,14 +226,14 @@ public class InstructorManagementPanel extends JPanel {
         departmentCombo.setSelectedIndex(0);
         instructorTable.clearSelection();
     }
-    
+
     private void addInstructor() {
         try {
             int id = Integer.parseInt(idField.getText());
             String firstName = firstNameField.getText();
             String lastName = lastNameField.getText();
             String department = (String) departmentCombo.getSelectedItem();
-            
+
             Instructor instructor = new Instructor(id, firstName, lastName, department);
             service.addInstructor(instructor);
             loadInstructorData();
@@ -203,20 +243,20 @@ public class InstructorManagementPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Please enter a valid ID", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     private void updateInstructor() {
         int selectedRow = instructorTable.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Please select an instructor to update", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         try {
             int id = Integer.parseInt(idField.getText());
             String firstName = firstNameField.getText();
             String lastName = lastNameField.getText();
             String department = (String) departmentCombo.getSelectedItem();
-            
+
             Instructor instructor = new Instructor(id, firstName, lastName, department);
             service.updateInstructor(instructor);
             loadInstructorData();
@@ -226,14 +266,14 @@ public class InstructorManagementPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Please enter a valid ID", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     private void deleteInstructor() {
         int selectedRow = instructorTable.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Please select an instructor to delete", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this instructor?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             int id = Integer.parseInt(tableModel.getValueAt(selectedRow, 0).toString());
