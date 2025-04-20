@@ -14,10 +14,10 @@ public class TimetableGenerator {
     private long randomSeed;
     private int strategyVariant;
     
-    // Availability tracking maps
-    private Map<String, Map<String, Set<Integer>>> instructorAvailability; // day -> time -> instructor IDs
+    // Track resource availability by timeslot
     private Map<String, Map<String, Set<Integer>>> roomAvailability;       // day -> time -> room IDs
-    private Map<String, Map<String, Set<String>>> courseYearAvailability;  // day -> time -> domain_year
+    private Map<String, Map<String, Set<Integer>>> instructorAvailability; // day -> time -> instructor IDs
+    private Map<String, Map<String, Map<String, Map<Integer, Set<String>>>>> domainYearAvailability; // day -> time -> domain -> year -> course codes
     
     // Day patterns
     private static final String[] MWF_DAYS = {"Monday", "Wednesday", "Friday"};
@@ -31,7 +31,7 @@ public class TimetableGenerator {
     };
     
     public TimetableGenerator(List<Classroom> classrooms, List<Course> courses, 
-                           List<Instructor> instructors, List<InstructorCourse> instructorCourses) {
+                            List<Instructor> instructors, List<InstructorCourse> instructorCourses) {
         this.classrooms = classrooms;
         this.courses = courses;
         this.instructors = instructors;
@@ -66,19 +66,20 @@ public class TimetableGenerator {
     }
     
     private void initializeAvailabilityMaps() {
-        instructorAvailability = new HashMap<>();
         roomAvailability = new HashMap<>();
-        courseYearAvailability = new HashMap<>();
+        instructorAvailability = new HashMap<>();
+        domainYearAvailability = new HashMap<>();
         
         for (String day : ALL_DAYS) {
-            instructorAvailability.put(day, new HashMap<>());
             roomAvailability.put(day, new HashMap<>());
-            courseYearAvailability.put(day, new HashMap<>());
+            instructorAvailability.put(day, new HashMap<>());
+            domainYearAvailability.put(day, new HashMap<>());
             
             for (String timeSlot : LECTURE_TIME_SLOTS) {
-                instructorAvailability.get(day).put(timeSlot, new HashSet<>());
                 roomAvailability.get(day).put(timeSlot, new HashSet<>());
-                courseYearAvailability.get(day).put(timeSlot, new HashSet<>());
+                instructorAvailability.get(day).put(timeSlot, new HashSet<>());
+                domainYearAvailability.get(day).put(timeSlot, new HashMap<>());
+                // Now domainYearAvailability.get(day).get(timeSlot) is a Map<String, Map<Integer, Set<String>>>
             }
         }
     }
@@ -91,35 +92,38 @@ public class TimetableGenerator {
         conflicts.clear();
         initializeAvailabilityMaps();
         
-        // Sort courses by constraints (more constrained first)
+        // Sort courses by constraints to prioritize the most constrained courses first
         List<Course> sortedCourses = new ArrayList<>(courses);
         Collections.sort(sortedCourses, (a, b) -> {
-            // Prioritize courses with labs
+            // First prioritize by total hours (more hours = more constrained)
+            int totalA = a.getLectureHours() + a.getLabHours();
+            int totalB = b.getLectureHours() + b.getLabHours();
+            
+            if (totalA != totalB) {
+                return Integer.compare(totalB, totalA);
+            }
+            
+            // Then prioritize labs over lectures
             if (a.getLabHours() > 0 && b.getLabHours() == 0) return -1;
             if (a.getLabHours() == 0 && b.getLabHours() > 0) return 1;
             
-            // Then prioritize by total hours (more hours = more constrained)
-            int totalA = a.getLectureHours() + a.getLabHours();
-            int totalB = b.getLectureHours() + b.getLabHours();
-            return Integer.compare(totalB, totalA);
+            return 0;
         });
         
-        // Process each course with its labs first, then lectures
+        // First schedule all labs, then lectures (labs have more constraints)
         for (Course course : sortedCourses) {
-            // Schedule labs first (they're more constrained)
             if (course.getLabHours() > 0 && !course.getLabInstructor().equals("0")) {
                 scheduleLabs(course);
             }
         }
         
-        // Then schedule lectures
         for (Course course : sortedCourses) {
             if (course.getLectureHours() > 0 && !course.getLectureInstructor().equals("0")) {
                 scheduleLectures(course);
             }
         }
         
-        // Check for conflicts and unscheduled sessions
+        // Detect conflicts and unscheduled sessions
         detectConflicts();
         
         return timetable;
@@ -130,11 +134,10 @@ public class TimetableGenerator {
         String[] days = course.getSchedulePattern().equals("TTS") ? TTS_DAYS : MWF_DAYS;
         String domain = course.getDomain();
         int year = course.getYear();
-        String domainYear = domain + "_" + year;
         
-        // Try to find suitable time slots across all days in the pattern
+        // Try each time slot until we schedule all required lectures
         for (String timeSlot : LECTURE_TIME_SLOTS) {
-            // Check if we've scheduled all needed lectures
+            // Skip if we've already scheduled all needed lectures
             if (countScheduledSessions(course.getCode(), "Lecture") >= course.getLectureHours()) {
                 break;
             }
@@ -142,7 +145,7 @@ public class TimetableGenerator {
             boolean slotWorks = true;
             Map<String, Classroom> selectedRooms = new HashMap<>();
             
-            // Check if this time slot works for all days in the pattern
+            // Check if this time slot works across all days in the pattern
             for (String day : days) {
                 // Check instructor availability
                 if (instructorAvailability.get(day).get(timeSlot).contains(lectureInstructorId)) {
@@ -150,8 +153,8 @@ public class TimetableGenerator {
                     break;
                 }
                 
-                // Check course-year availability (prevent same year/domain clashes)
-                if (courseYearAvailability.get(day).get(timeSlot).contains(domainYear)) {
+                // Check if another course in same domain/year is scheduled
+                if (isDomainYearConflict(day, timeSlot, domain, year, course.getCode())) {
                     slotWorks = false;
                     break;
                 }
@@ -166,27 +169,25 @@ public class TimetableGenerator {
                 selectedRooms.put(day, room);
             }
             
-            // If the slot works, schedule the lectures
+            // If the slot works for all days, schedule the lectures
             if (slotWorks) {
                 for (String day : days) {
-                    // Check if we've scheduled all needed lectures
+                    // Don't schedule more than needed
                     if (countScheduledSessions(course.getCode(), "Lecture") >= course.getLectureHours()) {
                         break;
                     }
                     
                     Classroom room = selectedRooms.get(day);
                     
-                    // Create the timetable entry
+                    // Create timetable entry
                     TimetableEntry entry = new TimetableEntry(
                         day, timeSlot, course.getCode(), room.getId(), 
                         lectureInstructorId, "Lecture"
                     );
                     timetable.add(entry);
                     
-                    // Update availability maps
-                    instructorAvailability.get(day).get(timeSlot).add(lectureInstructorId);
-                    roomAvailability.get(day).get(timeSlot).add(room.getId());
-                    courseYearAvailability.get(day).get(timeSlot).add(domainYear);
+                    // Mark resources as used
+                    markResourcesUsed(day, timeSlot, room.getId(), lectureInstructorId, domain, year, course.getCode());
                 }
             }
         }
@@ -200,31 +201,36 @@ public class TimetableGenerator {
         int labInstructorId = Integer.parseInt(course.getLabInstructor());
         String domain = course.getDomain();
         int year = course.getYear();
-        String domainYear = domain + "_" + year;
-        int labDuration = 2; // Labs are 2 hours
+        int labDuration = 2; // Labs are typically 2 hours
         
-        // Try each day
+        // Try to schedule labs for this course
         for (String day : ALL_DAYS) {
-            // Check if we've already scheduled all required labs
+            // Don't schedule more labs than needed
             if (countScheduledSessions(course.getCode(), "Lab") >= course.getLabHours()) {
                 break;
             }
             
-            // Try each possible lab starting time
+            // Try to find a suitable starting time slot for the lab
             for (int startIdx = 0; startIdx < LECTURE_TIME_SLOTS.length - (labDuration - 1); startIdx++) {
+                // Create the lab time slot (e.g. "8:00 - 10:00")
                 String startTime = LECTURE_TIME_SLOTS[startIdx].split(" - ")[0];
                 String endTime = LECTURE_TIME_SLOTS[startIdx + (labDuration - 1)].split(" - ")[1];
                 String labTimeSlot = startTime + " - " + endTime;
                 
-                // Check if all consecutive slots are available
+                // Check if all consecutive slots are available for this lab
                 boolean allSlotsAvailable = true;
                 
-                // Check instructor availability for all hours of the lab
                 for (int i = 0; i < labDuration; i++) {
-                    String currentTimeSlot = LECTURE_TIME_SLOTS[startIdx + i];
+                    String currentSlot = LECTURE_TIME_SLOTS[startIdx + i];
                     
-                    if (instructorAvailability.get(day).get(currentTimeSlot).contains(labInstructorId) ||
-                        courseYearAvailability.get(day).get(currentTimeSlot).contains(domainYear)) {
+                    // Check instructor availability
+                    if (instructorAvailability.get(day).get(currentSlot).contains(labInstructorId)) {
+                        allSlotsAvailable = false;
+                        break;
+                    }
+                    
+                    // Check domain/year conflict
+                    if (isDomainYearConflict(day, currentSlot, domain, year, course.getCode())) {
                         allSlotsAvailable = false;
                         break;
                     }
@@ -234,63 +240,102 @@ public class TimetableGenerator {
                     continue;
                 }
                 
-                // Find a suitable room that's available for the entire lab duration
-                Classroom labRoom = null;
-                for (Classroom room : classrooms) {
-                    if (room.getRoomType().equals("Lab") && 
-                        room.getCapacity() >= course.getStudents() &&
-                        room.getComputers() > 0) {
-                        
-                        boolean roomAvailable = true;
-                        for (int i = 0; i < labDuration; i++) {
-                            String currentTimeSlot = LECTURE_TIME_SLOTS[startIdx + i];
-                            if (roomAvailability.get(day).get(currentTimeSlot).contains(room.getId())) {
-                                roomAvailable = false;
-                                break;
-                            }
-                        }
-                        
-                        if (roomAvailable) {
-                            labRoom = room;
-                            break;
-                        }
-                    }
-                }
+                // Find a suitable lab room that's available for the entire duration
+                Classroom labRoom = findAvailableLabRoom(course, day, startIdx, labDuration);
                 
                 if (labRoom != null) {
-                    // Create lab entry
+                    // Schedule the lab
                     TimetableEntry entry = new TimetableEntry(
-                        day, labTimeSlot, course.getCode(), labRoom.getId(),
+                        day, labTimeSlot, course.getCode(), labRoom.getId(), 
                         labInstructorId, "Lab"
                     );
                     timetable.add(entry);
                     
-                    // Mark all slots as used
+                    // Mark all affected time slots as used
                     for (int i = 0; i < labDuration; i++) {
-                        String currentTimeSlot = LECTURE_TIME_SLOTS[startIdx + i];
-                        instructorAvailability.get(day).get(currentTimeSlot).add(labInstructorId);
-                        roomAvailability.get(day).get(currentTimeSlot).add(labRoom.getId());
-                        courseYearAvailability.get(day).get(currentTimeSlot).add(domainYear);
+                        String currentSlot = LECTURE_TIME_SLOTS[startIdx + i];
+                        markResourcesUsed(day, currentSlot, labRoom.getId(), labInstructorId, domain, year, course.getCode());
                     }
                     
-                    // Break after scheduling one lab
-                    break;
+                    break; // Successfully scheduled a lab, move to next day
                 }
             }
         }
     }
     
-    private int countScheduledSessions(String courseCode, String sessionType) {
-        int count = 0;
-        for (TimetableEntry entry : timetable) {
-            if (entry.getCourseCode().equals(courseCode) && 
-                entry.getSessionType().equals(sessionType)) {
-                count++;
-            }
+    // Checks if there's a conflict with another course in the same domain and year
+    private boolean isDomainYearConflict(String day, String timeSlot, String domain, int year, String courseCode) {
+        Map<String, Map<Integer, Set<String>>> timeMap = domainYearAvailability.get(day).get(timeSlot);
+        
+        if (!timeMap.containsKey(domain)) {
+            // First course in this domain for this time slot
+            timeMap.put(domain, new HashMap<>());
+            return false;
         }
-        return count;
+        
+        Map<Integer, Set<String>> domainMap = timeMap.get(domain);
+        
+        if (!domainMap.containsKey(year) || domainMap.get(year).isEmpty()) {
+            // First course in this year for this domain
+            return false;
+        }
+        
+        // There's already at least one course from the same domain and year
+        return true;
     }
     
+    // Mark resources (room, instructor, domain/year) as used for a time slot
+    private void markResourcesUsed(String day, String timeSlot, int roomId, int instructorId, String domain, int year, String courseCode) {
+        // Mark room as used
+        roomAvailability.get(day).get(timeSlot).add(roomId);
+        
+        // Mark instructor as used
+        instructorAvailability.get(day).get(timeSlot).add(instructorId);
+        
+        // Mark domain/year as used
+        Map<String, Map<Integer, Set<String>>> timeMap = domainYearAvailability.get(day).get(timeSlot);
+        
+        if (!timeMap.containsKey(domain)) {
+            timeMap.put(domain, new HashMap<>());
+        }
+        
+        Map<Integer, Set<String>> domainMap = timeMap.get(domain);
+        
+        if (!domainMap.containsKey(year)) {
+            domainMap.put(year, new HashSet<>());
+        }
+        
+        domainMap.get(year).add(courseCode);
+    }
+    
+    // Find a lab room available for the entire lab duration
+    private Classroom findAvailableLabRoom(Course course, String day, int startIdx, int labDuration) {
+        for (Classroom room : classrooms) {
+            if (room.getRoomType().equals("Lab") && 
+                room.getCapacity() >= course.getStudents() &&
+                room.getComputers() > 0) {
+                
+                boolean roomAvailable = true;
+                
+                // Check if room is available for the entire lab duration
+                for (int i = 0; i < labDuration; i++) {
+                    String currentSlot = LECTURE_TIME_SLOTS[startIdx + i];
+                    if (roomAvailability.get(day).get(currentSlot).contains(room.getId())) {
+                        roomAvailable = false;
+                        break;
+                    }
+                }
+                
+                if (roomAvailable) {
+                    return room;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    // Helper method to find a suitable room (lecture or lab) for a given session
     private Classroom findSuitableRoom(Course course, String sessionType, Set<Integer> bookedRooms) {
         List<Classroom> suitable = new ArrayList<>();
         
@@ -325,6 +370,19 @@ public class TimetableGenerator {
         return suitable.get(0);
     }
     
+    // Count the number of sessions already scheduled for a course and session type
+    private int countScheduledSessions(String courseCode, String sessionType) {
+        int count = 0;
+        for (TimetableEntry entry : timetable) {
+            if (entry.getCourseCode().equals(courseCode) && 
+                entry.getSessionType().equals(sessionType)) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    // Detect conflicts and unscheduled sessions
     private void detectConflicts() {
         // Check for unscheduled sessions
         for (Course course : courses) {
@@ -344,32 +402,43 @@ public class TimetableGenerator {
             }
         }
         
-        // Verify no instructor double-bookings
-        Map<String, Map<String, Set<Integer>>> verifyInstructorBookings = new HashMap<>();
+        // Check for room and instructor conflicts (redundant verification)
+        verifyNoConflicts();
+    }
+    
+    // Double-check that there are no resource conflicts in the generated timetable
+    private void verifyNoConflicts() {
+        Map<String, Map<String, Set<Integer>>> checkRooms = new HashMap<>();
+        Map<String, Map<String, Set<Integer>>> checkInstructors = new HashMap<>();
+        
+        // Initialize verification maps
         for (String day : ALL_DAYS) {
-            verifyInstructorBookings.put(day, new HashMap<>());
+            checkRooms.put(day, new HashMap<>());
+            checkInstructors.put(day, new HashMap<>());
+            
             for (String time : LECTURE_TIME_SLOTS) {
-                verifyInstructorBookings.get(day).put(time, new HashSet<>());
+                checkRooms.get(day).put(time, new HashSet<>());
+                checkInstructors.get(day).put(time, new HashSet<>());
             }
         }
         
-        // Check each entry for instructor double-booking
+        // Check each entry in the timetable
         for (TimetableEntry entry : timetable) {
             String day = entry.getDay();
             String timeSlot = entry.getTime();
+            int roomId = entry.getRoomId();
             int instructorId = entry.getInstructorId();
             
-            // Handle lab sessions that span multiple hours
+            // For labs that span multiple hours, we need to check all affected slots
             if (entry.getSessionType().equals("Lab")) {
-                // Extract start and end times
                 String[] times = timeSlot.split(" - ");
                 String startTime = times[0];
                 String endTime = times[1];
                 
-                // Find corresponding lecture time slots
                 int startIdx = -1;
                 int endIdx = -1;
                 
+                // Find start and end indices in the time slots array
                 for (int i = 0; i < LECTURE_TIME_SLOTS.length; i++) {
                     if (LECTURE_TIME_SLOTS[i].startsWith(startTime)) {
                         startIdx = i;
@@ -379,26 +448,41 @@ public class TimetableGenerator {
                     }
                 }
                 
+                // Check all affected time slots
                 if (startIdx >= 0 && endIdx >= 0) {
-                    // Check each hour in the lab
                     for (int i = startIdx; i <= endIdx; i++) {
-                        String currentTimeSlot = LECTURE_TIME_SLOTS[i];
+                        String currentSlot = LECTURE_TIME_SLOTS[i];
                         
-                        if (verifyInstructorBookings.get(day).get(currentTimeSlot).contains(instructorId)) {
-                            conflicts.add("Instructor " + getInstructorName(instructorId) + 
-                                         " is double-booked on " + day + " at " + currentTimeSlot);
+                        // Check room conflict
+                        if (checkRooms.get(day).get(currentSlot).contains(roomId)) {
+                            conflicts.add("Room " + roomId + " is double-booked on " + day + " at " + currentSlot);
                         } else {
-                            verifyInstructorBookings.get(day).get(currentTimeSlot).add(instructorId);
+                            checkRooms.get(day).get(currentSlot).add(roomId);
+                        }
+                        
+                        // Check instructor conflict
+                        if (checkInstructors.get(day).get(currentSlot).contains(instructorId)) {
+                            conflicts.add("Instructor " + getInstructorName(instructorId) + 
+                                         " is double-booked on " + day + " at " + currentSlot);
+                        } else {
+                            checkInstructors.get(day).get(currentSlot).add(instructorId);
                         }
                     }
                 }
-            } else {
-                // Regular lecture hour
-                if (verifyInstructorBookings.get(day).get(timeSlot).contains(instructorId)) {
+            } else { // Lectures are simpler - just check the one time slot
+                // Check room conflict
+                if (checkRooms.get(day).get(timeSlot).contains(roomId)) {
+                    conflicts.add("Room " + roomId + " is double-booked on " + day + " at " + timeSlot);
+                } else {
+                    checkRooms.get(day).get(timeSlot).add(roomId);
+                }
+                
+                // Check instructor conflict
+                if (checkInstructors.get(day).get(timeSlot).contains(instructorId)) {
                     conflicts.add("Instructor " + getInstructorName(instructorId) + 
                                  " is double-booked on " + day + " at " + timeSlot);
                 } else {
-                    verifyInstructorBookings.get(day).get(timeSlot).add(instructorId);
+                    checkInstructors.get(day).get(timeSlot).add(instructorId);
                 }
             }
         }
