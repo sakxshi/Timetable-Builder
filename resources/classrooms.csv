@@ -21,3 +21,8 @@ id,capacity,av_support,computers,roomType
 120,30,TRUE,15,Lab
 201,120,TRUE,0,Lecture
 202,60,TRUE,30,Lab
+301,100,TRUE,50,Lab
+302,100,TRUE,50,Lab
+303,100,TRUE,50,Lab
+304,100,TRUE,50,Lab
+305,100,TRUE,50,Lab
