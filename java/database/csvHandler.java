@@ -47,20 +47,25 @@ public class CSVHandler {
         List<Course> courses = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
-            if ((line = br.readLine()) != null) {} // Skip header
+            // Skip header
+            if ((line = br.readLine()) != null) {}
+            
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
                 String code = parts[0].trim();
                 String subject = parts[1].trim();
                 String domain = parts[2].trim();
-                int students = Integer.parseInt(parts[3].trim());
-                int lectureHours = Integer.parseInt(parts[4].trim());
-                int labHours = Integer.parseInt(parts[5].trim());
-                String lectureInstructor = parts[6].trim();
-                String labInstructor = parts.length > 7 ? parts[7].trim() : "0";
+                int year = Integer.parseInt(parts[3].trim());
+                int students = Integer.parseInt(parts[4].trim());
+                int lectureHours = Integer.parseInt(parts[5].trim());
+                int labHours = Integer.parseInt(parts[6].trim());
+                String lectureInstructor = parts[7].trim();
+                String labInstructor = parts.length > 8 ? parts[8].trim() : "0";
+                String schedulePattern = parts.length > 9 ? parts[9].trim() : "MWF";
                 
-                Course course = new Course(code, subject, domain, students, lectureHours, 
-                                         labHours, lectureInstructor, labInstructor);
+                Course course = new Course(code, subject, domain, year, students, 
+                                         lectureHours, labHours, lectureInstructor, 
+                                         labInstructor, schedulePattern);
                 courses.add(course);
             }
         } catch (IOException e) {
@@ -68,15 +73,16 @@ public class CSVHandler {
         }
         return courses;
     }
-    
+
     public static void saveCourses(List<Course> courses, String filename) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
-            bw.write("code,subject,domain,students,lecture_hours,lab_hours,lecture_instructor,lab_instructor");
+            bw.write("code,subject,domain,year,students,lecture_hours,lab_hours,lecture_instructor,lab_instructor,schedule_pattern");
             bw.newLine();
             for (Course c : courses) {
                 String line = c.getCode() + "," + c.getSubject() + "," + c.getDomain() + "," + 
-                             c.getStudents() + "," + c.getLectureHours() + "," + c.getLabHours() + "," + 
-                             c.getLectureInstructor() + "," + c.getLabInstructor();
+                           c.getYear() + "," + c.getStudents() + "," + c.getLectureHours() + "," + 
+                           c.getLabHours() + "," + c.getLectureInstructor() + "," + 
+                           c.getLabInstructor() + "," + c.getSchedulePattern();
                 bw.write(line);
                 bw.newLine();
             }

@@ -1,6 +1,31 @@
 id,firstName,lastName,department
-1,John,Smith,CSE
-2,Alice,Johnson,CSE
-3,Bob,Williams,CSE
+1,John,Smith,Computer Science
+2,Alice,Johnson,Computer Science
+3,Bob,Williams,Computer Science
 4,Carol,Jones,Mathematics
 5,David,Brown,Electrical
+6,Emma,Davis,Computer Science
+7,Frank,Miller,Mathematics
+8,Grace,Wilson,Electrical
+9,Henry,Moore,Civil
+10,Isabella,Taylor,Mathematics
+11,Jack,Anderson,Computer Science
+12,Katherine,Thomas,Electrical
+13,Leo,Jackson,Civil
+14,Mia,White,Mathematics
+15,Noah,Harris,Computer Science
+16,Olivia,Martin,Electrical
+17,Paul,Thompson,Civil
+18,Quinn,Garcia,Mathematics
+19,Ryan,Martinez,Computer Science
+20,Sophia,Robinson,Electrical
+21,Tyler,Clark,Civil
+22,Uma,Rodriguez,Mathematics
+23,Victor,Lewis,Computer Science
+24,Wendy,Lee,Electrical
+25,Xavier,Walker,Civil
+26,Yasmine,Hall,Mathematics
+27,Zach,Allen,Computer Science
+28,Amy,Young,Electrical
+29,Benjamin,King,Civil
+30,Chloe,Wright,Mathematics

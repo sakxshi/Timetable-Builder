@@ -1,5 +1,49 @@
-code,subject,domain,students,lecture_hours,lab_hours,lecture_instructor,lab_instructor
-CSF213,Data Structures,Computer Science,60,3,2,1,2
-CSF214,Algorithms,Computer Science,50,3,0,3,0
-MTH101,Calculus,Mathematics,80,4,0,4,0
-ELE101,Circuits,Electrical,40,3,1,5,2
+code,subject,domain,year,students,lecture_hours,lab_hours,lecture_instructor,lab_instructor,schedule_pattern
+CSF101,Introduction to Programming,Computer Science,1,80,3,2,1,2,MWF
+CSF102,Discrete Mathematics,Computer Science,1,75,3,0,3,0,TTS
+CSF103,Computer Organization,Computer Science,1,70,3,2,6,7,MWF
+CSF201,Data Structures,Computer Science,2,60,3,2,1,2,MWF
+CSF202,Algorithms,Computer Science,2,65,3,1,11,12,TTS
+CSF203,Database Systems,Computer Science,2,55,3,2,6,7,MWF
+CSF301,Operating Systems,Computer Science,3,45,3,2,11,2,TTS
+CSF302,Computer Networks,Computer Science,3,50,3,2,16,17,MWF
+CSF303,Theory of Computation,Computer Science,3,40,3,0,23,0,TTS
+CSF401,Artificial Intelligence,Computer Science,4,35,3,2,11,2,MWF
+CSF402,Machine Learning,Computer Science,4,40,3,2,23,27,TTS
+CSF403,Computer Graphics,Computer Science,4,30,3,2,27,2,MWF
+ELE101,Circuits,Electrical,1,70,3,2,5,8,TTS
+ELE102,Digital Electronics,Electrical,1,65,3,2,12,13,MWF
+ELE103,Electromagnetic Fields,Electrical,1,60,3,0,16,0,TTS
+ELE201,Analog Circuits,Electrical,2,55,3,2,5,8,MWF
+ELE202,Control Systems,Electrical,2,50,3,2,20,24,TTS
+ELE203,Power Systems,Electrical,2,45,3,1,24,28,MWF
+ELE301,Microprocessors,Electrical,3,40,3,2,12,13,TTS
+ELE302,Communication Systems,Electrical,3,45,3,2,20,24,MWF
+ELE303,VLSI Design,Electrical,3,35,3,2,16,28,TTS
+ELE401,Embedded Systems,Electrical,4,30,3,2,5,8,MWF
+ELE402,Wireless Communication,Electrical,4,25,3,1,24,28,TTS
+ELE403,Power Electronics,Electrical,4,20,3,2,20,16,MWF
+MTH101,Calculus,Mathematics,1,90,3,0,4,0,MWF
+MTH102,Linear Algebra,Mathematics,1,85,3,0,7,0,TTS
+MTH103,Statistics,Mathematics,1,80,3,1,10,14,MWF
+MTH201,Differential Equations,Mathematics,2,70,3,0,18,0,TTS
+MTH202,Probability Theory,Mathematics,2,65,3,1,22,26,MWF
+MTH203,Numerical Methods,Mathematics,2,60,3,1,26,30,TTS
+MTH301,Abstract Algebra,Mathematics,3,50,3,0,14,0,MWF
+MTH302,Complex Analysis,Mathematics,3,45,3,0,18,0,TTS
+MTH303,Optimization Techniques,Mathematics,3,40,3,1,22,26,MWF
+MTH401,Number Theory,Mathematics,4,30,3,0,10,0,TTS
+MTH402,Topology,Mathematics,4,25,3,0,14,0,MWF
+MTH403,Cryptography,Mathematics,4,20,3,1,30,22,TTS
+CIV101,Engineering Mechanics,Civil,1,75,3,1,9,13,MWF
+CIV102,Surveying,Civil,1,70,3,2,17,21,TTS
+CIV103,Construction Materials,Civil,1,65,3,1,25,29,MWF
+CIV201,Structural Analysis,Civil,2,60,3,1,9,17,TTS
+CIV202,Fluid Mechanics,Civil,2,55,3,2,21,25,MWF
+CIV203,Soil Mechanics,Civil,2,50,3,2,29,9,TTS
+CIV301,Reinforced Concrete Design,Civil,3,45,3,1,13,17,MWF
+CIV302,Transportation Engineering,Civil,3,40,3,0,21,0,TTS
+CIV303,Environmental Engineering,Civil,3,35,3,1,25,29,MWF
+CIV401,Steel Structures,Civil,4,30,3,1,9,13,TTS
+CIV402,Water Resources Engineering,Civil,4,25,3,1,21,25,MWF
+CIV403,Construction Management,Civil,4,20,3,0,29,0,TTS

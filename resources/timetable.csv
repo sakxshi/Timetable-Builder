@@ -1,0 +1,15 @@
+day,time,course_code,room_id,instructor_id,session_type
+Monday,8:00 - 9:00,CSF213,103,1,Lecture
+Wednesday,8:00 - 9:00,CSF213,103,1,Lecture
+Friday,8:00 - 9:00,CSF213,103,1,Lecture
+Tuesday,8:00 - 9:00,CSF214,101,3,Lecture
+Thursday,8:00 - 9:00,CSF214,101,3,Lecture
+Saturday,8:00 - 9:00,CSF214,101,3,Lecture
+Monday,8:00 - 9:00,MTH101,103,4,Lecture
+Wednesday,8:00 - 9:00,MTH101,103,4,Lecture
+Friday,8:00 - 9:00,MTH101,103,4,Lecture
+Tuesday,8:00 - 9:00,ELE101,101,5,Lecture
+Thursday,8:00 - 9:00,ELE101,101,5,Lecture
+Saturday,8:00 - 9:00,ELE101,101,5,Lecture
+Monday,8:00 - 10:00,ELE101,104,2,Lab
+Monday,9:00 - 11:00,ELE101,104,2,Lab

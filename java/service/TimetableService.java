@@ -3,6 +3,9 @@ package service;
 import controller.TimetableGenerator;
 import database.CSVHandler;
 import model.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class TimetableService {
@@ -18,7 +21,6 @@ public class TimetableService {
     private List<TimetableEntry> timetable;
     private List<String> conflicts;
     
-    // Maximum number of retry attempts
     private static final int MAX_ATTEMPTS = 100;
     
     public TimetableService() {
@@ -47,49 +49,68 @@ public class TimetableService {
         System.out.println("Starting timetable generation with up to " + MAX_ATTEMPTS + " attempts...");
         
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-            // Create a new generator for each attempt
-            TimetableGenerator generator = new TimetableGenerator(
-                classrooms, courses, instructors, instructorCourses);
-            
-            // Set different random seed and strategy variant for each attempt
+            TimetableGenerator generator = new TimetableGenerator(classrooms, courses, instructors, instructorCourses);
             generator.setRandomSeed(System.currentTimeMillis() + attempt);
             generator.setStrategyVariant(attempt);
             
-            // Generate timetable with this configuration
             List<TimetableEntry> currentTimetable = generator.generateTimetable();
             List<String> currentConflicts = generator.getConflicts();
             
-            System.out.println("Attempt " + (attempt + 1) + ": Found " + 
-                              currentConflicts.size() + " conflicts");
+            System.out.println("Attempt " + (attempt + 1) + ": Found " + currentConflicts.size() + " conflicts");
             
-            // If conflict-free, we've found our solution
             if (currentConflicts.isEmpty()) {
                 timetable = currentTimetable;
                 conflicts = currentConflicts;
-                System.out.println("Success! Found conflict-free timetable after " + 
-                                  (attempt + 1) + " attempts");
+                System.out.println("Success! Found conflict-free timetable after " + (attempt + 1) + " attempts");
                 return;
             }
             
-            // Keep track of the best solution (with fewest conflicts)
             if (currentConflicts.size() < fewestConflictCount) {
                 fewestConflictCount = currentConflicts.size();
                 bestTimetable = new ArrayList<>(currentTimetable);
                 fewestConflicts = new ArrayList<>(currentConflicts);
-                System.out.println("New best solution found with " + fewestConflictCount + 
-                                  " conflicts at attempt " + (attempt + 1));
+                System.out.println("New best solution found with " + fewestConflictCount + " conflicts at attempt " + (attempt + 1));
             }
         }
         
-        // If we reach here, we couldn't find a conflict-free solution after MAX_ATTEMPTS
         timetable = bestTimetable;
         conflicts = fewestConflicts;
         System.out.println("Could not find conflict-free timetable after " + MAX_ATTEMPTS + 
                           " attempts. Using best solution with " + conflicts.size() + " conflicts");
     }
     
-    // CRUD operations for Classroom, Course, Instructor remain unchanged
+    public void generateComprehensiveTimetable() {
+    System.out.println("Starting comprehensive timetable generation...");
     
+    TimetableGenerator generator = new TimetableGenerator(classrooms, courses, instructors, instructorCourses);
+    timetable = generator.generateTimetable();
+    conflicts = generator.getConflicts();
+    
+    System.out.println("Timetable generation complete with " + timetable.size() + " entries");
+}
+    
+    public void saveTimetableToCSV() {
+        String filename = "resources/timetable.csv";
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
+            bw.write("day,time,course_code,room_id,instructor_id,session_type");
+            bw.newLine();
+            
+            for (TimetableEntry entry : timetable) {
+                String line = entry.getDay() + "," + entry.getTime() + "," + 
+                             entry.getCourseCode() + "," + entry.getRoomId() + "," + 
+                             entry.getInstructorId() + "," + entry.getSessionType();
+                bw.write(line);
+                bw.newLine();
+            }
+            
+            System.out.println("Timetable saved to " + filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error saving timetable: " + e.getMessage());
+        }
+    }
+    
+    // Other methods for managing classrooms, courses, instructors, etc.
     public List<Classroom> getAllClassrooms() {
         return classrooms;
     }
