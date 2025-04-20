@@ -48,7 +48,3 @@ java -cp "bin:lib/flatlaf-3.6.jar" main.Main
 - `java/service`: Service layer for business operations
 - `java/database`: Data persistence layer
 - `util`: Utility classes including IconFactory
-
-## License
-
-[MIT License](LICENSE)
