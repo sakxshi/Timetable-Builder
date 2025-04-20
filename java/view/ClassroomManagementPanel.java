@@ -30,20 +30,21 @@ public class ClassroomManagementPanel extends JPanel {
         setBackground(SECTION_BG_COLOR);
 
         JLabel headerLabel = new JLabel("Classroom Management");
-        headerLabel.setFont(HEADING_FONT);
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
 
         JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(WHITE_COLOR);
-        formPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(220, 220, 220)),
-                "Add New Classroom",
-                TitledBorder.DEFAULT_JUSTIFICATION,
-                TitledBorder.DEFAULT_POSITION,
-                SUBHEADING_FONT
-            ),
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
+    formPanel.setBackground(WHITE_COLOR);
+    formPanel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)),
+            "Add New Classroom",
+            TitledBorder.DEFAULT_JUSTIFICATION,
+            TitledBorder.DEFAULT_POSITION,
+            SUBHEADING_FONT
+        ),
+        BorderFactory.createEmptyBorder(15, 15, 15, 15)
+    ));
+
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -56,7 +57,7 @@ public class ClassroomManagementPanel extends JPanel {
         JPanel idFieldPanel = new JPanel(new BorderLayout());
         idFieldPanel.setOpaque(false);
         JLabel idLabel = new JLabel("ID");
-        idLabel.setFont(SMALL_FONT);
+        idLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         idField = new JTextField(10);
         styleTextField(idField);
         idFieldPanel.add(idLabel, BorderLayout.NORTH);
@@ -121,6 +122,7 @@ public class ClassroomManagementPanel extends JPanel {
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.setOpaque(false);
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 10)); 
         
         addButton = createStyledButton("Add Classroom", PRIMARY_COLOR);
 addButton.setIcon(IconFactory.createPlusIcon());
@@ -148,15 +150,17 @@ addButton.setIcon(IconFactory.createPlusIcon());
         };
 
         classroomTable = new JTable(tableModel);
-        classroomTable.setFont(NORMAL_FONT);
-        classroomTable.setRowHeight(40);
+        classroomTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        classroomTable.setRowHeight(30);
         classroomTable.setShowGrid(true);
         classroomTable.setGridColor(new Color(230, 230, 230));
+        classroomTable.setBackground(new Color(255, 255, 255));
+        classroomTable.setSelectionBackground(new Color(200, 220, 255));
 
         JTableHeader header = classroomTable.getTableHeader();
-        header.setFont(SMALL_FONT);
-        header.setBackground(new Color(240, 240, 240));
-        header.setForeground(HEADING_COLOR);
+        header.setFont(new Font("Arial", Font.BOLD, 16));
+        header.setBackground(new Color(230, 230, 250)); 
+        header.setForeground(new Color(50, 50, 50));  
 
         JScrollPane scrollPane = new JScrollPane(classroomTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
@@ -167,8 +171,8 @@ addButton.setIcon(IconFactory.createPlusIcon());
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(WHITE_COLOR);
         tablePanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
         ));
         tablePanel.add(scrollPane, BorderLayout.CENTER);
 

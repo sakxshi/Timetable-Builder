@@ -3,3 +3,7 @@ id,capacity,av_support,computers,roomType
 102,30,TRUE,10,Lab
 103,80,FALSE,0,Lecture
 104,40,TRUE,15,Lab
+105,60,FALSE,0,Lecture
+106,35,TRUE,20,Lab
+107,45,FALSE,0,Lecture
+108,25,TRUE,12,Lab

@@ -5,3 +5,10 @@ instructor_id,course_code,type
 4,MTH101,Lecture
 5,ELE101,Lecture
 2,ELE101,Lab
+6,PHY111,Lecture
+7,PHY111,Lab
+8,CHE101,Lecture
+9,CHE101,Lab
+10,HSS201,Lecture
+1,CSF215,Lecture
+2,CSF215,Lab

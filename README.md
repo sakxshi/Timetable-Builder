@@ -1,6 +1,5 @@
 to compile -
-javac --release 8 -cp ".;lib/flatlaf-3.6.jar" -d bin java/main/Main.java java/model/*.java java/view/*.java java/controller/*.java java/service/*.java java/database/*.java util/IconFactory.java
-
+javac --release 8 -cp ".;lib/flatlaf-3.6.jar" -d bin java/main/Main.java java/model/*.java java/controller/*.java java/view/*.java java/service/*.java java/database/*.java util/IconFactory.java
 
 to run -
 for windows -
